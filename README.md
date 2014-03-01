@@ -1,8 +1,8 @@
-==SICP==
+## SICP
 
 Assignments and exercises from the MIT course.
 
-====links====
+#### Links
 
 [Textbook](http://mitpress.mit.edu/sicp/full-text/book/book.html)
 
