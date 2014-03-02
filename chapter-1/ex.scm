@@ -131,3 +131,85 @@
 ; consists of just primitive operators, then the operands are evaluated
 ; as they're needed.
 
+
+;;; Exercise 1.6.  Alyssa P. Hacker doesn't see why if needs to be provided as a special form. ``Why can't I just define it as an ordinary procedure in terms of cond?'' she asks. Alyssa's friend Eva Lu Ator claims this can indeed be done, and she defines a new version of if:
+
+(define (new-if predicate then-clause else-clause)
+  (cond (predicate then-clause)
+        (else else-clause)))
+
+; Eva demonstrates the program for Alyssa:
+
+(new-if (= 2 3) 0 5)
+5
+
+(new-if (= 1 1) 0 5)
+0
+
+; Delighted, Alyssa uses new-if to rewrite the square-root program:
+
+(define (sqrt-iter guess x)
+  (new-if (good-enough? guess x)
+          guess
+          (sqrt-iter (improve guess x)
+                     x)))
+
+; What happens when Alyssa attempts to use this to compute square roots? Explain.
+
+; This won't work because lisp is evaluated in applicative order.
+; sqrt-iter calls itself, and if it's used as an operand to new-if
+; the operand will be evaluated and the loop will never terminate.
+
+;;; Exercise 1.7.  The good-enough? test used in computing square roots will not be very effective for finding the square roots of very small numbers. Also, in real computers, arithmetic operations are almost always performed with limited precision. This makes our test inadequate for very large numbers. Explain these statements, with examples showing how the test fails for small and large numbers. An alternative strategy for implementing good-enough? is to watch how guess changes from one iteration to the next and to stop when the change is a very small fraction of the guess. Design a square-root procedure that uses this kind of end test. Does this work better for small and large numbers?
+
+; For small numbers, the closer that `x` gets to the predetermined 
+; tolerance number, the less the sqrt-iter will work.  Consider:
+
+(sqrt-iter .001 .001)
+
+; With the current implementation of `good-enough?`, the answer will
+; immediately return as .001, which is incorrect.
+;
+; Large numbers?
+
+;;; A new implementation:
+
+(define (improve guess x)
+  (average guess (/ x guess)))
+
+(define (average x y)
+  (/ (+ x y) 2))
+
+(define (square x) (* x x))
+
+(define (good-enough? new-guess old-guess)
+  (< (abs (/ (- new-guess old-guess) old-guess) 0.000001))
+
+(define (sqrt-iter new-guess old-guess x)
+  (if (good-enough? new-guess old-guess)
+    new-guess
+    (sqrt-iter 
+      (improve new-guess x)
+      new-guess
+      x)))
+
+; This does not appear to work any better.  For small numbers,
+; it even seems to be worse.
+
+;;; Exercise 1.8 - A cube root procedure based on the square root
+;;; procedure we already have
+
+(define (improve guess x)
+  (/ (+ (/ x (square guess)) (* 2 guess)) 3))
+
+(define (square x) (* x x))
+(define (cube x) (* x (square x)))
+
+(define (good-enough? guess x)
+  (< (abs (- (cube guess) x)) 0.001))
+
+(define (cbrt-iter guess x)
+  (if (good-enough? guess x)
+    guess
+    (sqrt-iter (improve guess x)
+               x)))
